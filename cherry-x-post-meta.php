@@ -91,7 +91,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 		 */
 		public function init_builder( $hook ) {
 
-			if ( 'post.php' !== $hook ) {
+			if ( ! in_array( $hook, array( 'post-new.php', 'post.php' ) ) ) {
 				return;
 			}
 
