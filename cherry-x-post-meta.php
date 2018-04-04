@@ -414,7 +414,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 			/**
 			 * Hook on before current metabox saving
 			 */
-			do_action( 'cx_post_meta/before_save/' . $this->args['id'], $post_id );
+			do_action( 'cx_post_meta/before_save/' . $this->args['id'], $post_id, $post );
 
 			if ( is_array( $this->args['single'] ) && isset( $this->args['single']['key'] ) ) {
 				$this->save_meta_mod( $post_id );
@@ -425,7 +425,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 			/**
 			 * Hook on after current metabox saving
 			 */
-			do_action( 'cx_post_meta/after_save/' . $this->args['id'], $post_id );
+			do_action( 'cx_post_meta/after_save/' . $this->args['id'], $post_id, $post );
 
 		}
 
