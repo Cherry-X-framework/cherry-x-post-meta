@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.0.0
+ * Version: 1.1.0
  */
 
 // If this file is called directly, abort.
@@ -333,7 +333,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 			foreach ( $this->args['fields'] as $key => $field ) {
 
 				$default = $this->get_arg( $field, 'value', '' );
-				$value   = $this->get_meta( $post, $key, $default );
+				$value   = $this->get_meta( $post, $key, $default, $field );
 
 				if ( isset( $field['options_callback'] ) ) {
 					$field['options'] = call_user_func( $field['options_callback'] );
@@ -481,9 +481,38 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 					continue;
 				}
 
-				$value = $this->sanitize_meta( $key, $_POST[ $key ] );
+				if ( $this->to_timestamp( $field ) ) {
+					$value = strtotime( $_POST[ $key ] );
+				} else {
+					$value = $this->sanitize_meta( $key, $_POST[ $key ] );
+				}
+
 				update_post_meta( $post_id, $key, $value );
 			}
+
+		}
+
+		/**
+		 * Is date field
+		 *
+		 * @param  [type]  $input_type [description]
+		 * @return boolean             [description]
+		 */
+		public function to_timestamp( $field ) {
+
+			if ( empty( $field['input_type'] ) ) {
+				return false;
+			}
+
+			if ( empty( $field['is_timestamp'] ) ) {
+				return false;
+			}
+
+			if ( ! in_array( $field['input_type'], array( 'date', 'datetime-local' ) ) ) {
+				return false;
+			}
+
+			return ( true === $field['is_timestamp'] );
 
 		}
 
@@ -534,9 +563,10 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 		 * @param  object $post    Current post object.
 		 * @param  string $key     The meta key to retrieve.
 		 * @param  mixed  $default Default value.
+		 * @param  array  $field   Meta field apropriate to current key.
 		 * @return string
 		 */
-		public function get_meta( $post, $key, $default = false ) {
+		public function get_meta( $post, $key, $default = false, $field = array() ) {
 
 			if ( ! is_object( $post ) ) {
 				return '';
@@ -547,6 +577,18 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 			}
 
 			$meta = get_post_meta( $post->ID, $key, false );
+
+			if ( ! empty( $meta[0] ) && $this->to_timestamp( $field ) ) {
+
+				switch ( $field['input_type'] ) {
+					case 'date':
+						return date( 'Y-m-d', $meta[0] );
+
+					case 'datetime-local':
+						return date( 'c', $meta[0] );
+				}
+
+			}
 
 			return ( empty( $meta ) ) ? $default : $meta[0];
 		}
