@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.1.0
+ * Version: 1.2.0
  */
 
 // If this file is called directly, abort.
@@ -476,8 +476,21 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 					continue;
 				}
 
+				$pre_processed = apply_filters( 'cx_post_meta/pre_process_key/' . $key, false, $post_id, $key );
+
+				if ( $pre_processed ) {
+					continue;
+				}
+
 				if ( empty( $_POST[ $key ] ) ) {
+
+					/**
+					 * Fires before specific key will be deleted
+					 */
+					do_action( 'cx_post_meta/before_delete_meta/' . $key, $post_id, $key );
+
 					update_post_meta( $post_id, $key, false );
+
 					continue;
 				}
 
@@ -486,6 +499,11 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 				} else {
 					$value = $this->sanitize_meta( $key, $_POST[ $key ] );
 				}
+
+				/**
+				 * Fires on specific key saving
+				 */
+				do_action( 'cx_post_meta/before_save_meta/' . $key, $post_id, $value, $key );
 
 				update_post_meta( $post_id, $key, $value );
 			}
@@ -570,6 +588,12 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 
 			if ( ! is_object( $post ) ) {
 				return '';
+			}
+
+			$pre_value = apply_filters( 'cx_post_meta/pre_get_meta/' . $key, false, $post, $key, $default, $field );
+
+			if ( false !== $pre_value ) {
+				return $pre_value;
 			}
 
 			if ( is_array( $this->args['single'] ) && isset( $this->args['single']['key'] ) ) {
