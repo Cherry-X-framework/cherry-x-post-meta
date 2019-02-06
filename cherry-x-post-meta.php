@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.2.0
+ * Version: 1.2.1
  */
 
 // If this file is called directly, abort.
@@ -609,7 +609,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 						return date( 'Y-m-d', $meta[0] );
 
 					case 'datetime-local':
-						return date( 'c', $meta[0] );
+						return date( 'Y-m-d\TH:i', $meta[0] );
 				}
 
 			}
