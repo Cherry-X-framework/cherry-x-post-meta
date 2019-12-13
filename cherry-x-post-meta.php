@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.3.0
+ * Version: 1.3.1
  */
 
 // If this file is called directly, abort.
@@ -81,6 +81,10 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 			add_action( 'admin_enqueue_scripts', array( $this, 'init_builder' ), 0 );
 			add_action( 'add_meta_boxes', array( $this, 'add_meta_boxes' ), 10, 2 );
 			add_action( 'save_post', array( $this, 'save_meta' ), 10, 2 );
+
+			if ( in_array( 'attachment', $this->args['page'] ) ) {
+				add_action( 'attachment_updated', array( $this, 'save_meta' ), 10, 2 );
+			}
 
 		}
 
