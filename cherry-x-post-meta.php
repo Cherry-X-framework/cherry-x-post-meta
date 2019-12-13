@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.2.1
+ * Version: 1.3.0
  */
 
 // If this file is called directly, abort.
@@ -482,7 +482,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 					continue;
 				}
 
-				if ( empty( $_POST[ $key ] ) ) {
+				if ( ! isset( $_POST[ $key ] ) || '' === $_POST[ $key ] ) {
 
 					/**
 					 * Fires before specific key will be deleted
@@ -492,6 +492,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 					update_post_meta( $post_id, $key, false );
 
 					continue;
+
 				}
 
 				if ( $this->to_timestamp( $field ) ) {
@@ -609,12 +610,13 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 						return date( 'Y-m-d', $meta[0] );
 
 					case 'datetime-local':
-						return date( 'Y-m-d\TH:i', $meta[0] );
+						return date( 'Y-m-d\TH:i:s', $meta[0] );
 				}
 
 			}
 
 			return ( empty( $meta ) ) ? $default : $meta[0];
+
 		}
 
 		/**
