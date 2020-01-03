@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.3.1
+ * Version: 1.4.0
  */
 
 // If this file is called directly, abort.
@@ -280,8 +280,6 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 				return;
 			}
 
-			wp_nonce_field( $this->nonce, $this->nonce );
-
 			/**
 			 * Hook fires before metabox output started.
 			 */
@@ -343,6 +341,28 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 					$field['options'] = call_user_func( $field['options_callback'] );
 				}
 
+				switch ( $field['type'] ) {
+					case 'checkbox':
+
+						if ( ! empty( $field['is_array'] ) && ! empty( $field['options'] ) && ! empty( $value ) ) {
+
+							$adjusted = array();
+
+							foreach ( $field['options'] as $opt_val => $opt_label ) {
+								if ( in_array( $opt_val, $value ) ) {
+									$adjusted[ $opt_val ] = 'true';
+								} else {
+									$adjusted[ $opt_val ] = 'false';
+								}
+							}
+
+							$value = $adjusted;
+
+						}
+
+						break;
+				}
+
 				$element        = $this->get_arg( $field, 'element', 'control' );
 				$field['id']    = $this->get_arg( $field, 'id', $key );
 				$field['name']  = $this->get_arg( $field, 'name', $key );
@@ -376,7 +396,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 				return;
 			}
 
-			if ( ! isset( $_POST[ $this->nonce ] ) || ! wp_verify_nonce( $_POST[ $this->nonce ], $this->nonce ) ) {
+			if ( empty( $_POST ) || ! isset( $_POST['_wpnonce'] ) ) {
 				return;
 			}
 
@@ -549,19 +569,39 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 		 */
 		public function sanitize_meta( $key, $value ) {
 
-			if ( empty( $this->args['fields'][ $key ]['sanitize_callback'] ) ) {
+			$field = $this->args['fields'][ $key ];
+
+			if ( 'checkbox' === $field['type'] && ! empty( $field['is_array'] ) ) {
+
+				$raw    = ! empty( $_POST[ $key ] ) ? $_POST[ $key ] : array();
+				$result = array();
+
+				if ( is_array( $raw ) ) {
+					foreach ( $raw as $raw_key => $raw_value ) {
+						$bool_value = filter_var( $raw_value, FILTER_VALIDATE_BOOLEAN );
+						if ( $bool_value ) {
+							$result[] = $raw_key;
+						}
+					}
+				}
+
+				return $result;
+
+			}
+
+			if ( empty( $field['sanitize_callback'] ) ) {
 				return $this->sanitize_deafult( $value );
 			}
 
-			if ( ! is_callable( $this->args['fields'][ $key ]['sanitize_callback'] ) ) {
+			if ( ! is_callable( $field['sanitize_callback'] ) ) {
 				return $this->sanitize_deafult( $value );
 			}
 
 			return call_user_func(
-				$this->args['fields'][ $key ]['sanitize_callback'],
+				$field['sanitize_callback'],
 				$value,
 				$key,
-				$this->args['fields'][ $key ]
+				$field
 			);
 
 		}
