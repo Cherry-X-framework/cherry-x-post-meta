@@ -348,6 +348,10 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 
 							$adjusted = array();
 
+							if ( ! is_array( $value ) ) {
+								$value = array( $value );
+							}
+
 							foreach ( $field['options'] as $opt_val => $opt_label ) {
 								if ( in_array( $opt_val, $value ) ) {
 									$adjusted[ $opt_val ] = 'true';
