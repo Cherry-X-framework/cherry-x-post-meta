@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.4.0
+ * Version: 1.4.1
  */
 
 // If this file is called directly, abort.
@@ -352,10 +352,12 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 								$value = array( $value );
 							}
 
+							foreach ( $value as $val ) {
+								$adjusted[ $val ] = 'true';
+							}
+
 							foreach ( $field['options'] as $opt_val => $opt_label ) {
-								if ( in_array( $opt_val, $value ) ) {
-									$adjusted[ $opt_val ] = 'true';
-								} else {
+								if ( ! in_array( $opt_val, $value ) ) {
 									$adjusted[ $opt_val ] = 'false';
 								}
 							}
