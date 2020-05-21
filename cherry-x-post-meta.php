@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.5.2
+ * Version: 1.5.3
  */
 
 // If this file is called directly, abort.
@@ -341,33 +341,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 					$field['options'] = call_user_func( $field['options_callback'] );
 				}
 
-				switch ( $field['type'] ) {
-					case 'checkbox':
-
-						if ( ! empty( $field['is_array'] ) && ! empty( $field['options'] ) && ! empty( $value ) ) {
-
-							$adjusted = array();
-
-							if ( ! is_array( $value ) ) {
-								$value = array( $value );
-							}
-
-							foreach ( $value as $val ) {
-								$adjusted[ $val ] = 'true';
-							}
-
-							foreach ( $field['options'] as $opt_val => $opt_label ) {
-								if ( ! in_array( $opt_val, $value ) ) {
-									$adjusted[ $opt_val ] = 'false';
-								}
-							}
-
-							$value = $adjusted;
-
-						}
-
-						break;
-				}
+				$value = $this->prepare_field_value( $field, $value );
 
 				$element        = $this->get_arg( $field, 'element', 'control' );
 				$field['id']    = $this->get_arg( $field, 'id', $key );
@@ -390,6 +364,60 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 					call_user_func( array( $this->builder, $register_callback ), $field );
 				}
 			}
+		}
+
+		/**
+		 * Prepare field value.
+		 *
+		 * @param $field
+		 * @param $value
+		 *
+		 * @return array
+		 */
+		public function prepare_field_value( $field, $value ) {
+			switch ( $field['type'] ) {
+				case 'repeater':
+
+					if ( is_array( $value ) && ! empty( $field['fields'] ) ) {
+
+						$repeater_fields =  $field['fields'];
+
+						foreach ( $value as $item_id => $item_value ) {
+							foreach ( $item_value as $repeater_field_id => $repeater_field_value ) {
+								$value[ $item_id ][ $repeater_field_id ] = $this->prepare_field_value( $repeater_fields[ $repeater_field_id ], $repeater_field_value );
+							}
+						}
+					}
+
+					break;
+
+				case 'checkbox':
+
+					if ( ! empty( $field['is_array'] ) && ! empty( $field['options'] ) && ! empty( $value ) ) {
+
+						$adjusted = array();
+
+						if ( ! is_array( $value ) ) {
+							$value = array( $value );
+						}
+
+						foreach ( $value as $val ) {
+							$adjusted[ $val ] = 'true';
+						}
+
+						foreach ( $field['options'] as $opt_val => $opt_label ) {
+							if ( ! in_array( $opt_val, $value ) ) {
+								$adjusted[ $opt_val ] = 'false';
+							}
+						}
+
+						$value = $adjusted;
+					}
+
+					break;
+			}
+
+			return $value;
 		}
 
 		/**
@@ -587,17 +615,29 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 		 * Sanitize passed meta value
 		 *
 		 * @since  1.1.3
-		 * @param  string $key   Meta key to sanitize.
-		 * @param  mixed  $value Meta value.
+		 * @param  string $key    Meta key to sanitize.
+		 * @param  mixed  $value  Meta value.
+		 * @param  array  $fields Meta fields array.
 		 * @return mixed
 		 */
-		public function sanitize_meta( $key, $value ) {
+		public function sanitize_meta( $key, $value, $fields = null ) {
 
-			$field = $this->args['fields'][ $key ];
+			$fields = ! $fields ? $this->args['fields'] : $fields;
+			$field  = $fields[ $key ];
+
+			if ( 'repeater' === $field['type'] && ! empty( $field['fields'] ) && is_array( $value ) ) {
+				$repeater_fields = $field['fields'];
+
+				foreach ( $value as $item_id => $item_value ) {
+					foreach ( $item_value as $repeater_field_id => $repeater_field_value ) {
+						$value[ $item_id ][ $repeater_field_id ] = $this->sanitize_meta( $repeater_field_id, $repeater_field_value, $repeater_fields );
+					}
+				}
+			}
 
 			if ( 'checkbox' === $field['type'] && ! empty( $field['is_array'] ) ) {
 
-				$raw    = ! empty( $_POST[ $key ] ) ? $_POST[ $key ] : array();
+				$raw    = ! empty( $value ) ? $value : array();
 				$result = array();
 
 				if ( is_array( $raw ) ) {
