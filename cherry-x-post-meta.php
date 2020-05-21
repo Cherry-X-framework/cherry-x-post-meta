@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.4.1
+ * Version: 1.5.2
  */
 
 // If this file is called directly, abort.
@@ -375,6 +375,10 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 				$field['type']  = $this->get_arg( $field, 'type', '' );
 				$field['value'] = $value;
 
+				if ( 'textarea' === $field['type'] ) {
+					$field['value'] = wp_unslash( $value );
+				}
+
 				// Fix zero values for stepper and slider
 				if ( ! $value && in_array( $field['type'], $zero_allowed ) ) {
 					$field['value'] = 0;
@@ -442,7 +446,12 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 			}
 
 			/**
-			 * Hook on before current metabox saving
+			 * Hook on before current metabox saving for all meta boxes
+			 */
+			do_action( 'cx_post_meta/before_save', $post_id, $post );
+
+			/**
+			 * Hook on before current metabox saving with meta box id as dynamic part
 			 */
 			do_action( 'cx_post_meta/before_save/' . $this->args['id'], $post_id, $post );
 
@@ -453,9 +462,14 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 			}
 
 			/**
-			 * Hook on after current metabox saving
+			 * Hook on after current metabox saving with meta box id as dynamic part
 			 */
 			do_action( 'cx_post_meta/after_save/' . $this->args['id'], $post_id, $post );
+
+			/**
+			 * Hook on after current metabox saving for all meta boxes
+			 */
+			do_action( 'cx_post_meta/after_save', $post_id, $post );
 
 		}
 
@@ -535,6 +549,10 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 				 * Fires on specific key saving
 				 */
 				do_action( 'cx_post_meta/before_save_meta/' . $key, $post_id, $value, $key );
+
+				if ( 'textarea' === $field['type'] && false === strpos( $value, "\\" ) ) {
+					$value = wp_slash( $value );
+				}
 
 				update_post_meta( $post_id, $key, $value );
 			}
