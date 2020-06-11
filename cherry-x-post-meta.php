@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.5.3
+ * Version: 1.5.4
  */
 
 // If this file is called directly, abort.
@@ -327,7 +327,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 			$zero_allowed = apply_filters(
 				'cx_post_meta/zero_allowed_controls',
 				array(
-					'stepper',
+					//'stepper',
 					'slider',
 				)
 			);
@@ -718,7 +718,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 						return date( 'Y-m-d', $meta[0] );
 
 					case 'datetime-local':
-						return date( 'Y-m-d\TH:i:s', $meta[0] );
+						return date( 'Y-m-d\TH:i', $meta[0] );
 				}
 
 			}
