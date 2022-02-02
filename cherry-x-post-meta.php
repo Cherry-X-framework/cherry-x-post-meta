@@ -2,7 +2,7 @@
 /**
  * Post Meta module
  *
- * Version: 1.5.5
+ * Version: 1.5.7
  */
 
 // If this file is called directly, abort.
@@ -711,7 +711,7 @@ if ( ! class_exists( 'Cherry_X_Post_Meta' ) ) {
 
 			$meta = get_post_meta( $post->ID, $key, false );
 
-			if ( ! empty( $meta[0] ) && $this->to_timestamp( $field ) ) {
+			if ( ! empty( $meta[0] ) && $this->to_timestamp( $field ) && is_numeric( $meta[0] ) ) {
 
 				switch ( $field['input_type'] ) {
 					case 'date':
